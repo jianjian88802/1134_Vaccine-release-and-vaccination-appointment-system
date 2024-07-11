@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dao.YuyuejiezongDao">
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        a.id as id
+        ,a.yonghu_id as yonghuId
+        ,a.yimiao_id as yimiaoId
+        ,a.yuyuejiezong_time as yuyuejiezongTime
+        ,a.yuyuejiezong_text as yuyuejiezongText
+        ,a.yuyuejiezong_yesno_types as yuyuejiezongYesnoTypes
+        ,a.yuyuejiezong_yesno_text as yuyuejiezongYesnoText
+        ,a.create_time as createTime
+    </sql>
+    <select id="selectListView" parameterType="map" resultType="com.entity.view.YuyuejiezongView" >
+        SELECT
+        <include refid="Base_Column_List" />
+
+--         级联表的字段
+        ,yimiao.yimiao_name as yimiaoName
+        ,yimiao.yimiao_types as yimiaoTypes
+        ,yimiao.yimiao_photo as yimiaoPhoto
+        ,yimiao.yimiao_clicknum as yimiaoClicknum
+        ,yimiao.yimiao_content as yimiaoContent
+        ,yonghu.yonghu_name as yonghuName
+        ,yonghu.yonghu_photo as yonghuPhoto
+        ,yonghu.yonghu_phone as yonghuPhone
+        ,yonghu.yonghu_id_number as yonghuIdNumber
+        ,yonghu.yonghu_email as yonghuEmail
+        ,yonghu.yonghu_delete as yonghuDelete
+
+        FROM yuyuejiezong  a
+        left JOIN yimiao yimiao ON a.yimiao_id = yimiao.id
+        left JOIN yonghu yonghu ON a.yonghu_id = yonghu.id
+
+        <where>
+            <if test="params.ids != null">
+                and a.id in
+                <foreach item="item" index="index" collection="params.ids" open="(" separator="," close=")">
+                #{item}
+                </foreach>
+            </if>
+            <if test="params.yonghuId != null and params.yonghuId != ''">
+                and (
+                    a.yonghu_id = #{params.yonghuId}
+                )
+            </if>
+            <if test="params.yimiaoId != null and params.yimiaoId != ''">
+                and (
+                    a.yimiao_id = #{params.yimiaoId}
+                )
+            </if>
+            <if test=" params.yuyuejiezongTimeStart != '' and params.yuyuejiezongTimeStart != null ">
+                <![CDATA[  and UNIX_TIMESTAMP(a.yuyuejiezong_time) >= UNIX_TIMESTAMP(#{params.yuyuejiezongTimeStart}) ]]>
+            </if>
+            <if test=" params.yuyuejiezongTimeEnd != '' and params.yuyuejiezongTimeEnd != null ">
+                <![CDATA[  and UNIX_TIMESTAMP(a.yuyuejiezong_time) <= UNIX_TIMESTAMP(#{params.yuyuejiezongTimeEnd}) ]]>
+            </if>
+            <if test=" params.yuyuejiezongText != '' and params.yuyuejiezongText != null and params.yuyuejiezongText != 'null' ">
+                and a.yuyuejiezong_text like CONCAT('%',#{params.yuyuejiezongText},'%')
+            </if>
+            <if test="params.yuyuejiezongYesnoTypes != null and params.yuyuejiezongYesnoTypes != ''">
+                and a.yuyuejiezong_yesno_types = #{params.yuyuejiezongYesnoTypes}
+            </if>
+            <if test=" params.yuyuejiezongYesnoText != '' and params.yuyuejiezongYesnoText != null and params.yuyuejiezongYesnoText != 'null' ">
+                and a.yuyuejiezong_yesno_text like CONCAT('%',#{params.yuyuejiezongYesnoText},'%')
+            </if>
+
+                <!-- 判断疫苗信息的id不为空 -->
+            <if test=" params.yimiaoIdNotNull != '' and params.yimiaoIdNotNull != null and params.yimiaoIdNotNull != 'null' ">
+                and a.yimiao_id IS NOT NULL
+            </if>
+            <if test=" params.yimiaoName != '' and params.yimiaoName != null and params.yimiaoName != 'null' ">
+                and yimiao.yimiao_name like CONCAT('%',#{params.yimiaoName},'%')
+            </if>
+            <if test="params.yimiaoTypes != null  and params.yimiaoTypes != ''">
+                and yimiao.yimiao_types = #{params.yimiaoTypes}
+            </if>
+
+            <if test="params.yiyuanId != null  and params.yiyuanId != ''">
+                and yimiao.yiyuan_id = #{params.yiyuanId}
+            </if>
+            <if test="params.yimiaoClicknumStart != null  and params.yimiaoClicknumStart != '' ">
+                <![CDATA[  and yimiao.yimiao_clicknum >= #{params.yimiaoClicknumStart}   ]]>
+            </if>
+            <if test="params.yimiaoClicknumEnd != null  and params.yimiaoClicknumEnd != '' ">
+                <![CDATA[  and yimiao.yimiao_clicknum <= #{params.yimiaoClicknumEnd}   ]]>
+            </if>
+            <if test="params.yimiaoClicknum != null  and params.yimiaoClicknum != '' ">
+                and yimiao.yimiao_clicknum = #{params.yimiaoClicknum}
+            </if>
+            <if test=" params.insertTimeStart != '' and params.insertTimeStart != null ">
+                <![CDATA[  and UNIX_TIMESTAMP(yimiao.insert_time) >= UNIX_TIMESTAMP(#{params.insertTimeStart}) ]]>
+            </if>
+            <if test=" params.insertTimeEnd != '' and params.insertTimeEnd != null ">
+                <![CDATA[  and UNIX_TIMESTAMP(yimiao.insert_time) <= UNIX_TIMESTAMP(#{params.insertTimeEnd}) ]]>
+            </if>
+            <if test=" params.yimiaoContent != '' and params.yimiaoContent != null and params.yimiaoContent != 'null' ">
+                and yimiao.yimiao_content like CONCAT('%',#{params.yimiaoContent},'%')
+            </if>
+                <!-- 判断用户的id不为空 -->
+            <if test=" params.yonghuIdNotNull != '' and params.yonghuIdNotNull != null and params.yonghuIdNotNull != 'null' ">
+                and a.yonghu_id IS NOT NULL
+            </if>
+            <if test=" params.yonghuName != '' and params.yonghuName != null and params.yonghuName != 'null' ">
+                and yonghu.yonghu_name like CONCAT('%',#{params.yonghuName},'%')
+            </if>
+            <if test=" params.yonghuPhone != '' and params.yonghuPhone != null and params.yonghuPhone != 'null' ">
+                and yonghu.yonghu_phone like CONCAT('%',#{params.yonghuPhone},'%')
+            </if>
+            <if test=" params.yonghuIdNumber != '' and params.yonghuIdNumber != null and params.yonghuIdNumber != 'null' ">
+                and yonghu.yonghu_id_number like CONCAT('%',#{params.yonghuIdNumber},'%')
+            </if>
+            <if test=" params.yonghuEmail != '' and params.yonghuEmail != null and params.yonghuEmail != 'null' ">
+                and yonghu.yonghu_email like CONCAT('%',#{params.yonghuEmail},'%')
+            </if>
+            <if test="params.yonghuDeleteStart != null  and params.yonghuDeleteStart != '' ">
+                <![CDATA[  and yonghu.yonghu_delete >= #{params.yonghuDeleteStart}   ]]>
+            </if>
+            <if test="params.yonghuDeleteEnd != null  and params.yonghuDeleteEnd != '' ">
+                <![CDATA[  and yonghu.yonghu_delete <= #{params.yonghuDeleteEnd}   ]]>
+            </if>
+            <if test="params.yonghuDelete != null  and params.yonghuDelete != '' ">
+                and yonghu.yonghu_delete = #{params.yonghuDelete}
+            </if>
+        </where>
+
+        order by a.${params.orderBy} desc 
+    </select>
+
+</mapper>
